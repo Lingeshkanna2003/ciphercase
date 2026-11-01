@@ -1,0 +1,14 @@
+{
+  "projects": {
+    "default": "lingeshkanna-portfolio"
+  },
+  "targets": {
+    "lingeshkanna-portfolio": {
+      "hosting": {
+        "ciphercase": [
+          "lingeshkanna-ciphercase"
+        ]
+      }
+    }
+  }
+}

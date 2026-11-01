@@ -1,0 +1,125 @@
+{
+  "id": "last-platform",
+  "caseNumber": "02",
+  "title": "The Last Platform",
+  "subtitle": "A message that never arrived",
+  "location": "Northmere Station",
+  "incident": "A sealed telegram disappeared from a locked dispatch cabinet before the last train.",
+  "brief": "At 11:40 p.m., a telegram carrying the board’s decision to close Northmere Station was due to leave on the last train. The dispatch cabinet was locked, the platform clock was eleven minutes fast, and the telegram was gone. A closure would change every person’s plans by morning. Four staff members were still on duty.",
+  "victim": "The missing closure telegram",
+  "crime": "Theft",
+  "complexity": "Standard",
+  "estimatedMinutes": 15,
+  "suspects": [
+    {
+      "id": "iris-bell",
+      "name": "Iris Bell",
+      "role": "Stationmaster",
+      "initials": "IB",
+      "profile": "Keeps the station running with a shrinking staff and a drawer full of old schedules. She had petitioned the board to keep Northmere open.",
+      "motive": "The closure would end her job and the station’s community service.",
+      "alibi": "She says she was in the booking hall. Two passengers saw her there at the time of the disappearance.",
+      "detail": "Iris had already sent the board a written appeal for a delay."
+    },
+    {
+      "id": "owen-pike",
+      "name": "Owen Pike",
+      "role": "Conductor",
+      "initials": "OP",
+      "profile": "Runs the last train and carries the dispatch satchel between the platform and the cabinet. He has worked this line for twelve years.",
+      "motive": "His brother owns the parcel yard that would gain a contract if the station closed.",
+      "alibi": "He says he was checking the rear carriage. The train’s inspection sheet has no time or witness signature.",
+      "detail": "Owen asked twice whether the board’s telegram had arrived."
+    },
+    {
+      "id": "jules-fenn",
+      "name": "Jules Fenn",
+      "role": "Telegraph operator",
+      "initials": "JF",
+      "profile": "Fast, observant, and usually the first to hear station news. Jules transmitted the telegram and knew what it said.",
+      "motive": "Jules’s partner works at the station and would lose their position.",
+      "alibi": "A continuous outgoing signal log places Jules at the telegraph desk from 11:34 to 11:44.",
+      "detail": "The message was copied correctly before it was sealed."
+    },
+    {
+      "id": "vera-dunn",
+      "name": "Vera Dunn",
+      "role": "Night porter",
+      "initials": "VD",
+      "profile": "Moves parcels, luggage, and sealed dispatches. Vera was seen near the cabinet but says she was collecting a lost suitcase.",
+      "motive": "Her family’s boarding house relies on the last train’s passengers.",
+      "alibi": "A luggage tag was printed in Vera’s name at 11:38, but the tag can be printed remotely.",
+      "detail": "Vera’s hands are clean; the cabinet has blue sealing wax on its lower edge."
+    }
+  ],
+  "evidence": [
+    {
+      "id": "satchel-seal",
+      "title": "Wax on the dispatch satchel",
+      "kind": "Trace",
+      "location": "Conductor’s compartment",
+      "teaser": "A blue fleck is pressed into a worn strap.",
+      "observation": "The cabinet telegram was sealed with blue wax. The same wax is ground into the dispatch satchel’s inner strap, where a folded paper could be hidden during a routine transfer.",
+      "meaning": "The missing telegram likely travelled with someone who carried the dispatch satchel.",
+      "icon": "fingerprint"
+    },
+    {
+      "id": "yard-contract",
+      "title": "The parcel-yard contract",
+      "kind": "Motive",
+      "location": "Stationmaster’s desk",
+      "teaser": "A contract draft names a new parcel contractor.",
+      "observation": "The draft gives the parcel yard beside Northmere to Owen Pike’s brother if the passenger station closes. A handwritten note in the margin reads: “Wait for the board’s notice before signing.”",
+      "meaning": "Owen’s family stood to gain directly from the closure notice disappearing until the contract was secured.",
+      "icon": "file"
+    },
+    {
+      "id": "signal-log",
+      "title": "The signal room log",
+      "kind": "Alibi",
+      "location": "Telegraph room",
+      "teaser": "A sequence of signal stamps runs without a gap.",
+      "observation": "Jules handled four incoming messages and two outgoing acknowledgements between 11:34 and 11:44. The mechanical printer’s paper has no break or manual override mark.",
+      "meaning": "The telegraph operator could not have made the round trip to the cabinet during the theft.",
+      "icon": "clock"
+    },
+    {
+      "id": "fast-clock",
+      "title": "The platform clock",
+      "kind": "Timing",
+      "location": "Platform seven",
+      "teaser": "The clock is ahead of the station bell.",
+      "observation": "The public platform clock is eleven minutes fast. The station bell, booking receipts, and telegraph log all agree on the actual time.",
+      "meaning": "Any alibi based only on the platform clock is unreliable.",
+      "icon": "clock"
+    },
+    {
+      "id": "ticket-stub",
+      "title": "A torn ticket stub",
+      "kind": "Trace",
+      "location": "Dispatch corridor",
+      "teaser": "A ticket fragment is caught under the cabinet door.",
+      "observation": "It is a conductor’s staff ticket punched at 11:37, the minute the telegram was last confirmed inside the cabinet. The punch pattern matches the staff book in Owen’s compartment.",
+      "meaning": "Someone carrying a conductor’s staff ticket was at the dispatch cabinet after the last confirmation.",
+      "icon": "ticket"
+    }
+  ],
+  "timeline": [
+    { "time": "11:22 p.m.", "label": "The telegram arrives", "detail": "Jules copies the closure decision and seals the original." },
+    { "time": "11:37 p.m.", "label": "The cabinet is checked", "detail": "Iris confirms the telegram is still there." },
+    { "time": "11:40 p.m.", "label": "The last dispatch leaves", "detail": "The train departs without the board’s message." },
+    { "time": "11:51 p.m.", "label": "The station bell rings", "detail": "The platform clock is later found to be eleven minutes fast." }
+  ],
+  "hints": [
+    { "text": "Separate a strong motive from a possible opportunity. The dispatch satchel changes who could move the paper unnoticed.", "evidenceIds": ["satchel-seal", "ticket-stub"] },
+    { "text": "The public clock is wrong. Use the station bell and the signal log to test the alibis.", "evidenceIds": ["fast-clock", "signal-log"] },
+    { "text": "Follow the benefit of the parcel-yard contract, then ask who carried the satchel.", "evidenceIds": ["yard-contract", "satchel-seal"] }
+  ],
+  "answer": {
+    "culpritId": "owen-pike",
+    "methodEvidenceId": "satchel-seal",
+    "motiveEvidenceId": "yard-contract",
+    "revealTitle": "The telegram left inside the satchel.",
+    "reveal": "Owen used the routine dispatch transfer to slip the sealed telegram into his satchel before boarding the train. The satchel’s inner strap kept the blue wax. His brother’s parcel-yard contract explains why delaying the closure notice mattered. The signal log gives Jules a continuous alibi, while the fast platform clock explains the misleading times."
+  }
+}

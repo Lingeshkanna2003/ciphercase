@@ -1,0 +1,125 @@
+{
+  "id": "clockwork-garden",
+  "caseNumber": "01",
+  "title": "The Clockwork Garden",
+  "subtitle": "A theft behind a locked door",
+  "location": "Marlowe Conservatory, Whitby",
+  "incident": "The Atlas pocket watch vanished from a locked archive during a brief power cut.",
+  "brief": "At 9:17 p.m., the lights in the conservatory went out for just over a minute. When they came back, the archive cabinet was still locked, its key still sealed in the curator’s office, and the Atlas watch was gone. Five people were in the building. The service passages on the old floor plan were supposedly closed years ago.",
+  "victim": "The Marlowe collection",
+  "crime": "Theft",
+  "complexity": "Warm-up",
+  "estimatedMinutes": 10,
+  "suspects": [
+    {
+      "id": "evelyn-shaw",
+      "name": "Evelyn Shaw",
+      "role": "Senior conservator",
+      "initials": "ES",
+      "profile": "Careful with the collection and impatient with visitors. Evelyn had catalogued the watch for years and knew the archive better than anyone.",
+      "motive": "She believed the watch belonged in a public museum, not a private sale.",
+      "alibi": "She says she was logging humidity readings in the west wing. A handwritten log shows a reading at 9:15.",
+      "detail": "Evelyn was the first to report the watch missing, before the archive cabinet had been inspected."
+    },
+    {
+      "id": "theo-marr",
+      "name": "Theo Marr",
+      "role": "Night guard",
+      "initials": "TM",
+      "profile": "A former dockworker who knows the grounds and every alarm. He was behind on rent and had asked for an advance that week.",
+      "motive": "An overdue rent notice was found in his locker.",
+      "alibi": "The east gate sensor logged his patrol there at 9:16 and again at 9:19.",
+      "detail": "The gate sensor has no blind spot, but the interior service corridors are not covered by cameras."
+    },
+    {
+      "id": "emil-hart",
+      "name": "Emil Hart",
+      "role": "Assistant curator",
+      "initials": "EH",
+      "profile": "Recently hired to prepare the archive for an insurance audit. Emil knew the watch’s value and had requested access to its old inventory file.",
+      "motive": "A private dealer was willing to pay for an unregistered antique.",
+      "alibi": "He says he was in the map room. The room is empty and has no time-stamped access log.",
+      "detail": "Emil corrected the archive floor plan in pencil the day before the theft."
+    },
+    {
+      "id": "ada-solis",
+      "name": "Dr. Ada Solis",
+      "role": "Donor and horologist",
+      "initials": "AS",
+      "profile": "A respected watch historian who funded the conservatory’s new lighting. She had once offered to buy the Atlas watch for her study.",
+      "motive": "She wanted the watch for her private collection.",
+      "alibi": "The reception host remembers speaking with her in the glass hall during the power cut.",
+      "detail": "Ada’s offer to buy the watch was declined in writing three months ago."
+    }
+  ],
+  "evidence": [
+    {
+      "id": "service-hatch",
+      "title": "The service hatch",
+      "kind": "Access",
+      "location": "Archive north wall",
+      "teaser": "A narrow panel sits behind a row of plant stands.",
+      "observation": "The panel opens onto a disused service passage between the potting room and the archive. Fresh brass filings sit beneath its latch. The panel can be opened from either side without the archive key.",
+      "meaning": "The cabinet was never opened. Someone entered and left through the old passage.",
+      "icon": "door"
+    },
+    {
+      "id": "dealer-letter",
+      "title": "The dealer’s letter",
+      "kind": "Motive",
+      "location": "Map room wastebasket",
+      "teaser": "A torn note is folded inside an auction catalogue.",
+      "observation": "The note offers a private buyer £18,000 for the unregistered Atlas watch. It is signed only with the initials E.H., and mentions an overdue contract payment.",
+      "meaning": "The initials and unpaid contract point toward someone with access to the archive and a reason to sell quietly.",
+      "icon": "file"
+    },
+    {
+      "id": "fuse-timer",
+      "title": "The timed fuse",
+      "kind": "Timing",
+      "location": "Electrical cupboard",
+      "teaser": "The lights went out too neatly to be an accident.",
+      "observation": "A small timer was attached to the display circuit. It was set to cut power for eighty-two seconds and then reset itself. The timer’s casing has conservatory potting soil caught in its seam.",
+      "meaning": "The blackout was planned by someone who could reach the display circuit and the potting room.",
+      "icon": "clock"
+    },
+    {
+      "id": "sealed-key",
+      "title": "The untouched key",
+      "kind": "Access",
+      "location": "Curator’s office",
+      "teaser": "The archive key is still inside its numbered seal.",
+      "observation": "The envelope has not been opened. The seal number matches the morning register, ruling out an ordinary cabinet entry with the master key.",
+      "meaning": "The thief needed another way into the archive.",
+      "icon": "key"
+    },
+    {
+      "id": "clay-trace",
+      "title": "Clay on the sill",
+      "kind": "Trace",
+      "location": "Archive window",
+      "teaser": "A red-brown mark crosses the inside sill.",
+      "observation": "The clay came from the conservatory’s potting benches, not the gravel courtyard. It is on the inside of the window and beside the service-hatch latch.",
+      "meaning": "The route began inside the conservatory rather than outside the building.",
+      "icon": "footprints"
+    }
+  ],
+  "timeline": [
+    { "time": "8:40 p.m.", "label": "Private viewing opens", "detail": "The Atlas watch is confirmed inside the archive cabinet." },
+    { "time": "9:06 p.m.", "label": "The lighting is checked", "detail": "A facilities note records the display circuit as working normally." },
+    { "time": "9:17 p.m.", "label": "The conservatory goes dark", "detail": "The power returns after eighty-two seconds." },
+    { "time": "9:20 p.m.", "label": "The loss is reported", "detail": "The cabinet is locked, but the watch is missing." }
+  ],
+  "hints": [
+    { "text": "The locked cabinet may be a distraction. Find out whether the thief needed its key at all.", "evidenceIds": ["service-hatch", "sealed-key"] },
+    { "text": "The blackout was timed. Follow the soil from the electrical cupboard back to its source.", "evidenceIds": ["fuse-timer", "clay-trace"] },
+    { "text": "Look for someone with quiet access to the map room and an overdue contract payment.", "evidenceIds": ["dealer-letter"] }
+  ],
+  "answer": {
+    "culpritId": "emil-hart",
+    "methodEvidenceId": "service-hatch",
+    "motiveEvidenceId": "dealer-letter",
+    "revealTitle": "The service passage was the way in.",
+    "reveal": "Emil used the timed blackout to cross the old passage from the potting room, lift the watch through the service hatch, and leave the archive cabinet untouched. The dealer’s note gave him a buyer and a reason to risk it. The sealed key and clay trace rule out a conventional break-in or an outside intruder."
+  }
+}

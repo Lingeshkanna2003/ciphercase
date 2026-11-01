@@ -1,0 +1,125 @@
+{
+  "id": "blue-hour-score",
+  "caseNumber": "03",
+  "title": "The Blue Hour Score",
+  "subtitle": "An original replaced by a copy",
+  "location": "Alderwick Hall, London",
+  "incident": "A composer’s final score was replaced inside a locked music library.",
+  "brief": "Composer Elian Voss left his final score in Alderwick Hall’s locked music library before the premiere. At midnight, the score was still there. By morning, the original had been replaced by a convincing copy. The concert begins tonight, and only four people had reason to enter the library after rehearsal.",
+  "victim": "Elian Voss’s final score",
+  "crime": "Forgery and theft",
+  "complexity": "Challenging",
+  "estimatedMinutes": 20,
+  "suspects": [
+    {
+      "id": "celia-ward",
+      "name": "Celia Ward",
+      "role": "Composer’s assistant",
+      "initials": "CW",
+      "profile": "Prepared Elian’s rehearsal copies and knew the library’s catalogue system. Celia has stayed at Alderwick Hall for three years.",
+      "motive": "A publisher promised an advance for an unpublished Voss work.",
+      "alibi": "Celia says she left after rehearsal. A taxi receipt shows her at the front gate, but no destination is listed.",
+      "detail": "Celia handled the paper stock used for the rehearsal copies."
+    },
+    {
+      "id": "marco-senn",
+      "name": "Marco Senn",
+      "role": "First violin",
+      "initials": "MS",
+      "profile": "A celebrated soloist who argued with Elian over the premiere’s tempo. Marco had direct access to the score during rehearsal.",
+      "motive": "He wanted the premiere postponed after a public disagreement with the composer.",
+      "alibi": "A live radio interview placed him at the station from 10:30 to 11:05 p.m.",
+      "detail": "Marco’s annotated rehearsal part has no blue copying marks."
+    },
+    {
+      "id": "nina-ross",
+      "name": "Nina Ross",
+      "role": "Music librarian",
+      "initials": "NR",
+      "profile": "Manages every key and catalogue entry in the library. Nina filed the score after rehearsal and insists the lock was never forced.",
+      "motive": "She believed the final score should remain private until Elian’s estate was settled.",
+      "alibi": "The library log records Nina locking the door at 9:48 p.m.; the hall’s motion sensor shows no return.",
+      "detail": "Nina had asked the estate to delay publication, but never requested a copy."
+    },
+    {
+      "id": "peter-vale",
+      "name": "Peter Vale",
+      "role": "Publisher’s representative",
+      "initials": "PV",
+      "profile": "Negotiated the premiere rights and visited Alderwick Hall to inspect the printed programme. Peter says he left before the score was catalogued.",
+      "motive": "His company would lose the exclusive edition if another publisher obtained the score first.",
+      "alibi": "A hotel key-card record places Peter at his hotel from 10:02 p.m. onward.",
+      "detail": "Peter’s contract grants rights only after the estate’s approval."
+    }
+  ],
+  "evidence": [
+    {
+      "id": "blue-copying-ribbon",
+      "title": "Blue carbon dust",
+      "kind": "Method",
+      "location": "Library worktable",
+      "teaser": "A thin blue line marks the edge of the replacement score.",
+      "observation": "Blue carbon dust is trapped between the replacement pages. The same dust appears on the typewriter ribbon used for rehearsal copies, stored in the assistant’s workroom.",
+      "meaning": "The copy was made with the rehearsal equipment, not at the publisher’s hotel or the locked library desk.",
+      "icon": "file"
+    },
+    {
+      "id": "publisher-draft",
+      "title": "The publisher’s draft",
+      "kind": "Motive",
+      "location": "Assistant’s workroom",
+      "teaser": "A draft agreement promises money for a Voss manuscript.",
+      "observation": "The draft offers a £12,000 advance for an unpublished score, payable on delivery. The recipient line has been cut away, but the paper carries Celia Ward’s workroom watermark.",
+      "meaning": "Someone with access to the original and the copying setup stood to earn from its delivery.",
+      "icon": "file"
+    },
+    {
+      "id": "library-seal",
+      "title": "The intact library seal",
+      "kind": "Access",
+      "location": "Music library door",
+      "teaser": "The lock and paper seal are unbroken.",
+      "observation": "The door’s paper seal is intact and the lock shows no tool marks. The library key was returned at 9:48 p.m. and remained in Nina’s numbered key cabinet overnight.",
+      "meaning": "The score was likely swapped before the library was locked, or by someone with legitimate access before 9:48.",
+      "icon": "key"
+    },
+    {
+      "id": "ink-drying-time",
+      "title": "Ink from the rehearsal copy",
+      "kind": "Timing",
+      "location": "Replacement score",
+      "teaser": "The notation ink has dried unevenly on the final page.",
+      "observation": "The blue marks were copied no earlier than 9:30 p.m.; they are still tacky where the page folded. The rehearsal copy machine’s counter advanced once at 9:36.",
+      "meaning": "The swap happened after rehearsal, while the key cabinet was still accessible.",
+      "icon": "clock"
+    },
+    {
+      "id": "estate-note",
+      "title": "A note from the estate",
+      "kind": "Context",
+      "location": "Programme office",
+      "teaser": "A signed note limits who may publish the score.",
+      "observation": "Elian’s estate gave the premiere orchestra permission to perform the score, but all print rights remain unassigned until the family reviews offers.",
+      "meaning": "The publisher’s draft was not an authorized contract; a private sale would bypass the estate.",
+      "icon": "file"
+    }
+  ],
+  "timeline": [
+    { "time": "8:55 p.m.", "label": "Rehearsal ends", "detail": "Elian leaves the final score in the library for safekeeping." },
+    { "time": "9:30 p.m.", "label": "The assistant’s workroom is used", "detail": "The rehearsal-copy machine counter advances once." },
+    { "time": "9:48 p.m.", "label": "The library is locked", "detail": "Nina returns the key and seals the door." },
+    { "time": "7:12 a.m.", "label": "The copy is discovered", "detail": "The original score is missing from the shelf." }
+  ],
+  "hints": [
+    { "text": "The intact seal narrows the window. Compare when the copy was made with when the library key was returned.", "evidenceIds": ["library-seal", "ink-drying-time"] },
+    { "text": "The replacement carries a process mark. Find who had the matching tools and materials.", "evidenceIds": ["blue-copying-ribbon"] },
+    { "text": "A sale would be unauthorized until the estate approves it. Look for a private advance, not a signed rights agreement.", "evidenceIds": ["publisher-draft", "estate-note"] }
+  ],
+  "answer": {
+    "culpritId": "celia-ward",
+    "methodEvidenceId": "blue-copying-ribbon",
+    "motiveEvidenceId": "publisher-draft",
+    "revealTitle": "The original was copied before the library was locked.",
+    "reveal": "Celia used the rehearsal-copy equipment and its blue carbon ribbon to make a replacement. The ink and machine counter place the work after rehearsal but before the library key was sealed away. The publisher’s draft promised her a private advance, even though the estate had not assigned the rights. The intact door seal was true; the swap happened before it was applied."
+  }
+}
