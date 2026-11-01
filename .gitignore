@@ -4,5 +4,3 @@ coverage/
 .DS_Store
 .env*
 !.env.example
-.firebase/
-firebase-debug.log

@@ -1,15 +1,14 @@
 import { useEffect, useState } from 'react';
-import { Fingerprint } from 'lucide-react';
 import GameHeader from './components/GameHeader';
 import HomeScreen from './components/HomeScreen';
 import CaseWorkspace from './components/CaseWorkspace';
 import ShareResultScreen from './components/ShareResultScreen';
 import { cases, getCaseById } from './data/cases';
-import { getAchievements } from './lib/achievements';
 import { calculateScore, checkAccusation } from './lib/caseEngine';
 import { createCaseProgress, createFreshProgress, loadProgress, SAVE_KEY, saveProgress } from './lib/progress';
 import { createShareUrl, readSharedResult } from './lib/sharing';
 import type { Accusation, CaseActivity, CaseActivityType, CaseProgress, Difficulty, GameProgress, SharedResult } from './types/game';
+import { playSound } from './lib/sound';
 
 function getBrowserStorage(): Storage | undefined {
   try {
@@ -46,7 +45,7 @@ export default function App() {
   }, [progress]);
 
   useEffect(() => {
-    document.title = activeCase ? `${activeCase.title} — CipherCase` : 'CipherCase — The truth is in the details';
+    document.title = activeCase ? `${activeCase.title} — CipherCase` : 'CipherCase — Detective mysteries';
   }, [activeCase]);
 
   const goHome = () => {
@@ -68,6 +67,7 @@ export default function App() {
     setAccusationFeedback('');
     setShareNotice('');
     clearShareUrl();
+    playSound(progress.soundEnabled, 'open');
     setProgress((current) => {
       if (current.cases[caseId]) return current;
       const fresh = createCaseProgress();
@@ -87,6 +87,8 @@ export default function App() {
     if (!activeCase) return;
     const evidence = activeCase.evidence.find((item) => item.id === evidenceId);
     if (!evidence) return;
+    const existing = progress.cases[activeCase.id]?.discoveredEvidenceIds.includes(evidenceId);
+    if (!existing) playSound(progress.soundEnabled, 'discover');
     updateCase(activeCase.id, (caseProgress) => {
       if (caseProgress.discoveredEvidenceIds.includes(evidenceId)) return caseProgress;
       const updated = { ...caseProgress, discoveredEvidenceIds: [...caseProgress.discoveredEvidenceIds, evidenceId] };
@@ -103,6 +105,22 @@ export default function App() {
       const updated = { ...caseProgress, interviewedSuspectIds: [...caseProgress.interviewedSuspectIds, suspectId] };
       return addActivity(updated, 'interview', `Logged an interview with ${suspect.name}.`);
     });
+  };
+
+  const discoverConnection = (connectionId: string) => {
+    if (!activeCase) return;
+    const connection = activeCase.connections.find((item) => item.id === connectionId);
+    if (!connection) return;
+    if (!activeProgress?.discoveredConnectionIds.includes(connectionId)) playSound(progress.soundEnabled, 'compare');
+    updateCase(activeCase.id, (caseProgress) => {
+      if (caseProgress.discoveredConnectionIds.includes(connectionId)) return caseProgress;
+      return addActivity({ ...caseProgress, discoveredConnectionIds: [...caseProgress.discoveredConnectionIds, connectionId] }, 'connection', `Connected ${connection.evidenceIds.map((id) => activeCase.evidence.find((item) => item.id === id)?.title ?? 'evidence').join(' and ')}.`);
+    });
+  };
+
+  const updateBoardOrder = (boardOrder: string[]) => {
+    if (!activeCase) return;
+    updateCase(activeCase.id, (caseProgress) => ({ ...caseProgress, boardOrder }));
   };
 
   const addHint = () => {
@@ -126,6 +144,7 @@ export default function App() {
     if (outcome.kind === 'incorrect') {
       updateCase(activeCase.id, (caseProgress) => addActivity({ ...caseProgress, wrongAccusations: caseProgress.wrongAccusations + 1 }, 'accusation', 'An accusation did not fit the evidence.'));
       setAccusationFeedback('That theory does not fit the evidence yet. Review your notes and try again.');
+      playSound(progress.soundEnabled, 'error');
       return;
     }
 
@@ -148,6 +167,7 @@ export default function App() {
       };
     });
     setAccusationFeedback('The evidence supports your conclusion.');
+    playSound(progress.soundEnabled, 'solve');
   };
 
   const revealShare = async (result?: SharedResult) => {
@@ -176,7 +196,7 @@ export default function App() {
   const setDifficulty = (difficulty: Difficulty) => setProgress((current) => ({ ...current, difficulty }));
 
   const resetProgress = () => {
-    if (typeof window !== 'undefined' && !window.confirm('Reset all cases, notes, and achievements saved in this browser?')) return;
+    if (typeof window !== 'undefined' && !window.confirm('Reset all saved cases and notes in this browser?')) return;
     try { getBrowserStorage()?.removeItem(SAVE_KEY); } catch { /* Storage may be unavailable in private browsing. */ }
     setProgress(createFreshProgress());
     setActiveCaseId(null);
@@ -189,13 +209,12 @@ export default function App() {
     clearShareUrl();
   };
 
-  const achievements = getAchievements(progress, cases.length);
   const solvedCount = Object.keys(progress.results).length;
 
   return (
-    <div className="app-frame">
+    <div className={`app-frame ${activeCase ? `case-theme-${activeCase.id}` : 'bureau-theme'}`}>
       <div className="ambient-light ambient-one" aria-hidden="true" /><div className="ambient-light ambient-two" aria-hidden="true" />
-      <GameHeader activeCaseTitle={activeCase?.title} solvedCount={solvedCount} saveAvailable={saveAvailable} onHome={home} onReset={!activeCase ? resetProgress : undefined} />
+      <GameHeader activeCaseTitle={activeCase?.title} solvedCount={solvedCount} saveAvailable={saveAvailable} soundEnabled={progress.soundEnabled} onToggleSound={() => setProgress((current) => ({ ...current, soundEnabled: !current.soundEnabled }))} onHome={home} onReset={!activeCase ? resetProgress : undefined} />
       <div className="app-content">
         {activeCase && activeProgress ? (
           <CaseWorkspace
@@ -206,6 +225,8 @@ export default function App() {
             feedback={accusationFeedback}
             onBack={home}
             onExamine={examineEvidence}
+            onConnectEvidence={discoverConnection}
+            onBoardOrderChange={updateBoardOrder}
             onInterview={logInterview}
             onNoteChange={(notes) => updateCase(activeCase.id, (caseProgress) => ({ ...caseProgress, notes }))}
             onHint={addHint}
@@ -222,10 +243,10 @@ export default function App() {
             onHome={home}
           />
         ) : (
-          <HomeScreen progress={progress} achievements={achievements} onOpenCase={openCase} onSetDifficulty={setDifficulty} />
+          <HomeScreen progress={progress} onOpenCase={openCase} onSetDifficulty={setDifficulty} />
         )}
       </div>
-      <footer className="global-footer"><span><Fingerprint size={14} /> Every clue stays on your device.</span><span>Built for curious minds <span className="footer-asterisk">✳</span> CipherCase © 2026</span></footer>
+      <footer className="global-footer"><span>© 2026 CipherCase</span></footer>
     </div>
   );
 }

@@ -106,14 +106,21 @@
   ],
   "timeline": [
     { "time": "8:40 p.m.", "label": "Private viewing opens", "detail": "The Atlas watch is confirmed inside the archive cabinet." },
-    { "time": "9:06 p.m.", "label": "The lighting is checked", "detail": "A facilities note records the display circuit as working normally." },
-    { "time": "9:17 p.m.", "label": "The conservatory goes dark", "detail": "The power returns after eighty-two seconds." },
-    { "time": "9:20 p.m.", "label": "The loss is reported", "detail": "The cabinet is locked, but the watch is missing." }
+    { "time": "9:06 p.m.", "label": "The lighting is checked", "detail": "A facilities note records the display circuit as working normally.", "evidenceIds": ["fuse-timer"] },
+    { "time": "9:17 p.m.", "label": "The conservatory goes dark", "detail": "The power returns after eighty-two seconds.", "evidenceIds": ["fuse-timer", "clay-trace"] },
+    { "time": "9:20 p.m.", "label": "The loss is reported", "detail": "The cabinet is locked, but the watch is missing.", "evidenceIds": ["sealed-key", "service-hatch"] }
   ],
   "hints": [
     { "text": "The locked cabinet may be a distraction. Find out whether the thief needed its key at all.", "evidenceIds": ["service-hatch", "sealed-key"] },
     { "text": "The blackout was timed. Follow the soil from the electrical cupboard back to its source.", "evidenceIds": ["fuse-timer", "clay-trace"] },
     { "text": "Look for someone with quiet access to the map room and an overdue contract payment.", "evidenceIds": ["dealer-letter"] }
+  ],
+  "connections": [
+    { "id": "hidden-route", "evidenceIds": ["service-hatch", "clay-trace"], "insight": "The clay is on the inside of the sill. The hatch offers a route that never touches the locked cabinet." },
+    { "id": "planned-blackout", "evidenceIds": ["fuse-timer", "clay-trace"], "insight": "The timer carries the same potting-room soil found by the hatch. The blackout and the hidden route share a starting point." },
+    { "id": "key-distraction", "evidenceIds": ["sealed-key", "service-hatch"], "insight": "The key seal is intact because the hatch bypasses the cabinet entirely." },
+    { "id": "emil-route", "evidenceIds": ["service-hatch"], "suspectId": "emil-hart", "insight": "Emil corrected the floor plan the day before the theft. The hidden passage makes that detail relevant to access." },
+    { "id": "emil-motive", "evidenceIds": ["dealer-letter"], "suspectId": "emil-hart", "insight": "The initials E.H. and overdue contract payment align with Emil’s access and the private offer." }
   ],
   "answer": {
     "culpritId": "emil-hart",

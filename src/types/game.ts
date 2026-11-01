@@ -1,6 +1,6 @@
 export type Difficulty = 'story' | 'standard' | 'expert';
 
-export type CaseActivityType = 'opened' | 'evidence' | 'interview' | 'hint' | 'accusation' | 'solved';
+export type CaseActivityType = 'opened' | 'evidence' | 'interview' | 'connection' | 'hint' | 'accusation' | 'solved';
 
 export interface Suspect {
   id: string;
@@ -28,11 +28,19 @@ export interface CaseTimelineEntry {
   time: string;
   label: string;
   detail: string;
+  evidenceIds?: string[];
 }
 
 export interface CaseHint {
   text: string;
   evidenceIds: string[];
+}
+
+export interface CaseConnection {
+  id: string;
+  evidenceIds: string[];
+  suspectId?: string;
+  insight: string;
 }
 
 export interface CaseFile {
@@ -51,6 +59,7 @@ export interface CaseFile {
   evidence: Evidence[];
   timeline: CaseTimelineEntry[];
   hints: CaseHint[];
+  connections: CaseConnection[];
   answer: {
     culpritId: string;
     methodEvidenceId: string;
@@ -85,6 +94,8 @@ export interface CaseActivity {
 export interface CaseProgress {
   discoveredEvidenceIds: string[];
   interviewedSuspectIds: string[];
+  discoveredConnectionIds: string[];
+  boardOrder: string[];
   notes: string;
   hintsUsed: number;
   wrongAccusations: number;
@@ -94,8 +105,9 @@ export interface CaseProgress {
 }
 
 export interface GameProgress {
-  version: 1;
+  version: 2;
   difficulty: Difficulty;
+  soundEnabled: boolean;
   cases: Record<string, CaseProgress>;
   results: Record<string, CaseResult>;
 }

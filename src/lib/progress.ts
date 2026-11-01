@@ -4,13 +4,15 @@ export const SAVE_KEY = 'ciphercase-progress-v1';
 const difficulties: Difficulty[] = ['story', 'standard', 'expert'];
 
 export function createFreshProgress(): GameProgress {
-  return { version: 1, difficulty: 'standard', cases: {}, results: {} };
+  return { version: 2, difficulty: 'standard', soundEnabled: false, cases: {}, results: {} };
 }
 
 export function createCaseProgress(now = new Date().toISOString()): CaseProgress {
   return {
     discoveredEvidenceIds: [],
     interviewedSuspectIds: [],
+    discoveredConnectionIds: [],
+    boardOrder: [],
     notes: '',
     hintsUsed: 0,
     wrongAccusations: 0,
@@ -44,7 +46,7 @@ function cleanActivity(value: unknown): CaseActivity[] {
     && typeof item.id === 'string'
     && typeof item.at === 'string'
     && typeof item.message === 'string'
-    && ['opened', 'evidence', 'interview', 'hint', 'accusation', 'solved'].includes(String(item.type)))
+    && ['opened', 'evidence', 'interview', 'connection', 'hint', 'accusation', 'solved'].includes(String(item.type)))
     .slice(-40);
 }
 
@@ -57,6 +59,12 @@ function cleanCaseProgress(value: unknown, caseId: string): CaseProgress | null 
       : [],
     interviewedSuspectIds: Array.isArray(value.interviewedSuspectIds)
       ? value.interviewedSuspectIds.filter((id): id is string => typeof id === 'string').slice(0, 100)
+      : [],
+    discoveredConnectionIds: Array.isArray(value.discoveredConnectionIds)
+      ? value.discoveredConnectionIds.filter((id): id is string => typeof id === 'string').slice(0, 100)
+      : [],
+    boardOrder: Array.isArray(value.boardOrder)
+      ? value.boardOrder.filter((id): id is string => typeof id === 'string').slice(0, 100)
       : [],
     notes: typeof value.notes === 'string' ? value.notes.slice(0, 5000) : '',
     hintsUsed: typeof value.hintsUsed === 'number' ? Math.max(0, Math.min(20, Math.floor(value.hintsUsed))) : 0,
@@ -72,7 +80,7 @@ export function loadProgress(storage?: Pick<Storage, 'getItem'>): GameProgress {
     const raw = storage?.getItem(SAVE_KEY);
     if (!raw) return createFreshProgress();
     const parsed: unknown = JSON.parse(raw);
-    if (!isRecord(parsed) || parsed.version !== 1) return createFreshProgress();
+    if (!isRecord(parsed) || (parsed.version !== 1 && parsed.version !== 2)) return createFreshProgress();
 
     const cases: GameProgress['cases'] = {};
     if (isRecord(parsed.cases)) {
@@ -91,8 +99,9 @@ export function loadProgress(storage?: Pick<Storage, 'getItem'>): GameProgress {
     }
 
     return {
-      version: 1,
+      version: 2,
       difficulty: difficulties.includes(parsed.difficulty as Difficulty) ? parsed.difficulty as Difficulty : 'standard',
+      soundEnabled: parsed.soundEnabled === true,
       cases,
       results,
     };

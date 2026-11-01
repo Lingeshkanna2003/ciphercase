@@ -44,6 +44,16 @@ export function validateCaseFile(caseFile: CaseFile): string[] {
     }
   }
 
+  const uniqueConnectionIds = new Set<string>();
+  for (const connection of caseFile.connections ?? []) {
+    if (!connection.id || uniqueConnectionIds.has(connection.id)) errors.push('Case connection ids must be present and unique.');
+    uniqueConnectionIds.add(connection.id);
+    if (connection.evidenceIds.some((id) => !allEvidenceIds.has(id))) errors.push('Every case connection must reference evidence in the case.');
+    if (connection.suspectId && !uniqueSuspects.has(connection.suspectId)) errors.push('Every person connection must reference a suspect in the case.');
+    if (connection.evidenceIds.length === 2 && connection.suspectId) errors.push('A connection must compare two clues or one clue and one suspect.');
+    if (connection.evidenceIds.length !== 2 && !(connection.evidenceIds.length === 1 && connection.suspectId)) errors.push('A connection must compare two clues or one clue and one suspect.');
+  }
+
   return errors;
 }
 

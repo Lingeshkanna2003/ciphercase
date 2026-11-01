@@ -105,15 +105,22 @@
     }
   ],
   "timeline": [
-    { "time": "11:22 p.m.", "label": "The telegram arrives", "detail": "Jules copies the closure decision and seals the original." },
-    { "time": "11:37 p.m.", "label": "The cabinet is checked", "detail": "Iris confirms the telegram is still there." },
-    { "time": "11:40 p.m.", "label": "The last dispatch leaves", "detail": "The train departs without the board’s message." },
-    { "time": "11:51 p.m.", "label": "The station bell rings", "detail": "The platform clock is later found to be eleven minutes fast." }
+    { "time": "11:22 p.m.", "label": "The telegram arrives", "detail": "Jules copies the closure decision and seals the original.", "evidenceIds": ["signal-log"] },
+    { "time": "11:37 p.m.", "label": "The cabinet is checked", "detail": "Iris confirms the telegram is still there.", "evidenceIds": ["ticket-stub"] },
+    { "time": "11:40 p.m.", "label": "The last dispatch leaves", "detail": "The train departs without the board’s message.", "evidenceIds": ["satchel-seal"] },
+    { "time": "11:51 p.m.", "label": "The station bell rings", "detail": "The platform clock is later found to be eleven minutes fast.", "evidenceIds": ["fast-clock"] }
   ],
   "hints": [
     { "text": "Separate a strong motive from a possible opportunity. The dispatch satchel changes who could move the paper unnoticed.", "evidenceIds": ["satchel-seal", "ticket-stub"] },
     { "text": "The public clock is wrong. Use the station bell and the signal log to test the alibis.", "evidenceIds": ["fast-clock", "signal-log"] },
     { "text": "Follow the benefit of the parcel-yard contract, then ask who carried the satchel.", "evidenceIds": ["yard-contract", "satchel-seal"] }
+  ],
+  "connections": [
+    { "id": "satchel-route", "evidenceIds": ["satchel-seal", "ticket-stub"], "insight": "The staff ticket places a conductor at the cabinet; the wax trace shows how the telegram could travel unseen." },
+    { "id": "clock-correction", "evidenceIds": ["fast-clock", "signal-log"], "insight": "The station bell and continuous signal log agree. The platform clock is the outlier, so its times cannot support an alibi." },
+    { "id": "closure-benefit", "evidenceIds": ["yard-contract", "satchel-seal"], "insight": "The contract gives the disappearance a financial purpose, while the satchel gives it a plausible route." },
+    { "id": "owen-route", "evidenceIds": ["satchel-seal"], "suspectId": "owen-pike", "insight": "Owen routinely carried the satchel. The wax trace shows how the telegram could leave with him." },
+    { "id": "owen-motive", "evidenceIds": ["yard-contract"], "suspectId": "owen-pike", "insight": "The parcel-yard contract benefits Owen’s brother if the station closes, giving him a reason to delay the telegram." }
   ],
   "answer": {
     "culpritId": "owen-pike",

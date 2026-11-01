@@ -1,11 +1,15 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
-  ArrowLeft, ArrowUpRight, BadgeCheck, BookOpen, Check, CheckCircle2, Clock3,
+  ArrowLeft, ArrowUpRight, BadgeCheck, Check, CheckCircle2, Clock3,
   DoorOpen, FileText, Fingerprint, Footprints, KeyRound, Lightbulb, MapPin,
   NotebookPen, Search, ShieldCheck, Ticket, UserRound, X,
 } from 'lucide-react';
 import type { Accusation, CaseFile, CaseProgress, Difficulty, Evidence, Suspect } from '../types/game';
 import { getHintCost } from '../lib/caseEngine';
+import DeductionBoard from './DeductionBoard';
+import CaseEnvironment from './CaseEnvironment';
+import EvidenceArtifact from './EvidenceArtifact';
 
 interface CaseWorkspaceProps {
   caseFile: CaseFile;
@@ -14,6 +18,8 @@ interface CaseWorkspaceProps {
   feedback: string;
   onBack: () => void;
   onExamine: (evidenceId: string) => void;
+  onConnectEvidence: (connectionId: string) => void;
+  onBoardOrderChange: (evidenceIds: string[]) => void;
   onInterview: (suspectId: string) => void;
   onNoteChange: (note: string) => void;
   onHint: () => void;
@@ -34,11 +40,6 @@ const evidenceIcons = {
 function EvidenceGlyph({ evidence }: { evidence: Evidence }) {
   const Icon = evidenceIcons[evidence.icon as keyof typeof evidenceIcons] ?? Search;
   return <Icon size={17} strokeWidth={1.7} aria-hidden="true" />;
-}
-
-function formatActivityTime(value: string): string {
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? '—' : new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit' }).format(date);
 }
 
 function EvidenceCard({ evidence, discovered, selected, hinted, onExamine }: {
@@ -84,6 +85,7 @@ function SuspectCard({ suspect, selected, interviewed, onSelect, onInterview }: 
           <button type="button" className="small-outline-button" onClick={onInterview} disabled={interviewed}>
             {interviewed ? <><Check size={13} /> Interview logged</> : <>Log this interview <ArrowUpRight size={13} /></>}
           </button>
+          {interviewed && <div className="interview-transcript" role="status"><small>STATEMENT IN THE FIELD LOG</small><p>{suspect.alibi}</p><small>INVESTIGATOR’S NOTE</small><p>{suspect.detail}</p></div>}
         </div>
       </details>
     </article>
@@ -101,21 +103,46 @@ function SolutionPanel({ caseFile, score, onShare, onBack }: { caseFile: CaseFil
   );
 }
 
-export default function CaseWorkspace({ caseFile, progress, difficulty, feedback, onBack, onExamine, onInterview, onNoteChange, onHint, onAccuse, onShare }: CaseWorkspaceProps) {
+export default function CaseWorkspace({ caseFile, progress, difficulty, feedback, onBack, onExamine, onConnectEvidence, onBoardOrderChange, onInterview, onNoteChange, onHint, onAccuse, onShare }: CaseWorkspaceProps) {
   const [selectedEvidenceId, setSelectedEvidenceId] = useState<string | null>(progress.discoveredEvidenceIds[0] ?? null);
+  const [evidenceFilter, setEvidenceFilter] = useState<'all' | 'unexamined' | 'collected'>('all');
   const [selectedSuspectId, setSelectedSuspectId] = useState('');
   const [methodEvidenceId, setMethodEvidenceId] = useState('');
   const [motiveEvidenceId, setMotiveEvidenceId] = useState('');
+  const [inspectionFace, setInspectionFace] = useState<'observation' | 'interpretation'>('observation');
+  const [inspectionZoomed, setInspectionZoomed] = useState(false);
+  const [newEvidenceId, setNewEvidenceId] = useState<string | null>(null);
+  const previousEvidenceCount = useRef(progress.discoveredEvidenceIds.length);
+  const discoveryTimer = useRef<number | undefined>(undefined);
   const isSolved = Boolean(progress.result);
   const discovered = new Set(progress.discoveredEvidenceIds);
   const collectedEvidence = caseFile.evidence.filter((evidence) => discovered.has(evidence.id));
+  const visibleEvidence = useMemo(() => caseFile.evidence.filter((evidence) => evidenceFilter === 'all' || (evidenceFilter === 'collected' ? discovered.has(evidence.id) : !discovered.has(evidence.id))), [caseFile.evidence, evidenceFilter, progress.discoveredEvidenceIds]);
   const selectedEvidence = caseFile.evidence.find((evidence) => evidence.id === selectedEvidenceId && discovered.has(evidence.id));
   const latestHint = progress.hintsUsed > 0 ? caseFile.hints[Math.min(progress.hintsUsed - 1, caseFile.hints.length - 1)] : null;
   const nextHint = caseFile.hints[progress.hintsUsed];
   const accusation: Accusation = { suspectId: selectedSuspectId, methodEvidenceId, motiveEvidenceId };
   const accusationReady = Boolean(selectedSuspectId && methodEvidenceId && motiveEvidenceId && discovered.has(methodEvidenceId) && discovered.has(motiveEvidenceId));
+  const selectedSuspect = caseFile.suspects.find((suspect) => suspect.id === selectedSuspectId);
+  const methodEvidence = collectedEvidence.find((evidence) => evidence.id === methodEvidenceId);
+  const motiveEvidence = collectedEvidence.find((evidence) => evidence.id === motiveEvidenceId);
+
+  useEffect(() => {
+    const count = progress.discoveredEvidenceIds.length;
+    if (count > previousEvidenceCount.current) {
+      setNewEvidenceId(progress.discoveredEvidenceIds[count - 1]);
+      if (discoveryTimer.current) window.clearTimeout(discoveryTimer.current);
+      discoveryTimer.current = window.setTimeout(() => setNewEvidenceId(null), 3800);
+    }
+    previousEvidenceCount.current = count;
+    return () => { if (discoveryTimer.current) window.clearTimeout(discoveryTimer.current); };
+  }, [progress.discoveredEvidenceIds]);
 
   const examine = (evidenceId: string) => {
+    if (evidenceId !== selectedEvidenceId) {
+      setInspectionFace('observation');
+      setInspectionZoomed(false);
+    }
     setSelectedEvidenceId(evidenceId);
     onExamine(evidenceId);
   };
@@ -126,10 +153,17 @@ export default function CaseWorkspace({ caseFile, progress, difficulty, feedback
 
       <section className="dossier-header" aria-labelledby="case-title">
         <div className="dossier-title-block"><p className="eyebrow"><span className="eyebrow-line" /> Active investigation <span className="eyebrow-separator">/</span> {caseFile.complexity}</p><h1 id="case-title">{caseFile.title}</h1><p className="dossier-subtitle">{caseFile.subtitle}</p></div>
-        <div className="dossier-location"><span className="location-pin"><MapPin size={17} /></span><span><small>LOCATION</small><strong>{caseFile.location}</strong></span></div>
+        <div className="dossier-visual"><CaseEnvironment caseId={caseFile.id} compact eager /><div className="dossier-location"><span className="location-pin"><MapPin size={17} /></span><span><small>LOCATION</small><strong>{caseFile.location}</strong></span></div></div>
         <p className="dossier-brief">{caseFile.brief}</p>
         <div className="case-progress-bar"><div className="progress-label"><span><Search size={14} /> Evidence examined</span><strong>{collectedEvidence.length} <span>/ {caseFile.evidence.length}</span></strong></div><progress value={collectedEvidence.length} max={caseFile.evidence.length}>{collectedEvidence.length}/{caseFile.evidence.length}</progress></div>
       </section>
+
+      <nav className="investigation-steps" aria-label="Investigation sections">
+        <a className={collectedEvidence.length ? 'step-active' : ''} href="#evidence-title"><span>01</span><i /> Inspect the scene</a>
+        <a className={progress.interviewedSuspectIds.length ? 'step-active' : ''} href="#suspect-title"><span>02</span><i /> Question the people</a>
+        <a className={progress.result ? 'step-active' : ''} href="#deduction-title"><span>03</span><i /> Make your call</a>
+      </nav>
+      {newEvidenceId && typeof document !== 'undefined' && createPortal(<div className="discovery-toast" role="status" aria-live="polite"><span className="discovery-toast-mark"><CheckCircle2 size={16} /></span><span><small>Evidence added</small><strong>{caseFile.evidence.find((item) => item.id === newEvidenceId)?.title}</strong></span></div>, document.body)}
 
       {progress.result && <SolutionPanel caseFile={caseFile} score={progress.result.score} onShare={onShare} onBack={onBack} />}
 
@@ -137,23 +171,35 @@ export default function CaseWorkspace({ caseFile, progress, difficulty, feedback
         <div className="workspace-main">
           <section className="workspace-section" aria-labelledby="evidence-title">
             <div className="workspace-section-heading"><div><p className="eyebrow"><span className="eyebrow-line" /> 01 <span className="eyebrow-separator">/</span> The scene</p><h2 id="evidence-title">Evidence board</h2></div><span className="section-count">{collectedEvidence.length.toString().padStart(2, '0')} logged</span></div>
-            <p className="section-intro">Examine each item. Details are added to your case file as you find them.</p>
+            <p className="section-intro">Examine each clue to add it to your file.</p>
+            <div className="evidence-toolbar" role="group" aria-label="Filter evidence">
+              <span className="evidence-toolbar-label"><Search size={14} /> Filter clues</span>
+              <div className="evidence-filters">
+                {([{ id: 'all', label: 'All clues', count: caseFile.evidence.length }, { id: 'unexamined', label: 'Unexamined', count: caseFile.evidence.length - collectedEvidence.length }, { id: 'collected', label: 'On file', count: collectedEvidence.length }] as const).map((filter) => (
+                  <button key={filter.id} type="button" className={evidenceFilter === filter.id ? 'filter-active' : ''} aria-pressed={evidenceFilter === filter.id} onClick={() => setEvidenceFilter(filter.id)}>{filter.label}<span>{filter.count}</span></button>
+                ))}
+              </div>
+            </div>
             <div className="evidence-grid">
-              {caseFile.evidence.map((evidence) => (
+              {visibleEvidence.map((evidence) => (
                 <EvidenceCard key={evidence.id} evidence={evidence} discovered={discovered.has(evidence.id)} selected={selectedEvidenceId === evidence.id} hinted={Boolean(latestHint?.evidenceIds.includes(evidence.id))} onExamine={() => examine(evidence.id)} />
               ))}
             </div>
+            {visibleEvidence.length === 0 && <div className="evidence-filter-empty"><CheckCircle2 size={17} /> Every clue is in your file. The scene is fully examined.</div>}
             <article className={`evidence-detail ${selectedEvidence ? 'detail-open' : ''}`} aria-live="polite">
               {selectedEvidence ? <>
                 <div className="detail-heading"><span className="detail-icon"><EvidenceGlyph evidence={selectedEvidence} /></span><div><p className="eyebrow">Evidence logged <span className="eyebrow-separator">/</span> {selectedEvidence.kind}</p><h3>{selectedEvidence.title}</h3></div><button type="button" className="detail-close" onClick={() => setSelectedEvidenceId(null)} aria-label="Close evidence details"><X size={17} /></button></div>
-                <p className="detail-observation">{selectedEvidence.observation}</p><p className="detail-meaning"><span>What it suggests</span>{selectedEvidence.meaning}</p>
+                <div className={`evidence-inspection ${inspectionZoomed ? 'inspection-zoomed' : ''}`}>
+                  <EvidenceArtifact icon={selectedEvidence.icon} title={selectedEvidence.title} />
+                  <div className="inspection-reading"><small>{inspectionFace === 'observation' ? 'OBSERVATION' : 'WHAT IT SUGGESTS'}</small><p>{inspectionFace === 'observation' ? selectedEvidence.observation : selectedEvidence.meaning}</p><div className="inspection-controls"><button type="button" onClick={() => setInspectionFace((face) => face === 'observation' ? 'interpretation' : 'observation')}>{inspectionFace === 'observation' ? 'Turn the evidence over' : 'Return to observation'}</button><button type="button" onClick={() => setInspectionZoomed((zoomed) => !zoomed)}>{inspectionZoomed ? 'Fit in view' : 'Inspect close'}</button></div></div>
+                </div>
               </> : <div className="detail-empty"><Search size={17} /><span>Choose an item above to examine it.</span></div>}
             </article>
+            <DeductionBoard evidence={collectedEvidence} suspects={caseFile.suspects} connections={caseFile.connections} discoveredConnectionIds={progress.discoveredConnectionIds} order={progress.boardOrder} onConnect={onConnectEvidence} onOrderChange={onBoardOrderChange} />
           </section>
 
           <section className="workspace-section suspects-section" aria-labelledby="suspect-title">
-            <div className="workspace-section-heading"><div><p className="eyebrow"><span className="eyebrow-line" /> 02 <span className="eyebrow-separator">/</span> The people</p><h2 id="suspect-title">Suspect profiles</h2></div><span className="section-count">{caseFile.suspects.length.toString().padStart(2, '0')} persons of interest</span></div>
-            <p className="section-intro">Read each account. Keep what they say beside what the evidence shows.</p>
+            <div className="workspace-section-heading"><div><p className="eyebrow"><span className="eyebrow-line" /> 02 <span className="eyebrow-separator">/</span> The people</p><h2 id="suspect-title">Suspect profiles</h2></div></div>
             <div className="suspect-grid">
               {caseFile.suspects.map((suspect: Suspect) => (
                 <SuspectCard key={suspect.id} suspect={suspect} selected={selectedSuspectId === suspect.id} interviewed={progress.interviewedSuspectIds.includes(suspect.id)} onSelect={() => setSelectedSuspectId(suspect.id)} onInterview={() => onInterview(suspect.id)} />
@@ -162,8 +208,7 @@ export default function CaseWorkspace({ caseFile, progress, difficulty, feedback
           </section>
 
           <section className="workspace-section deduction-section" aria-labelledby="deduction-title">
-            <div className="workspace-section-heading"><div><p className="eyebrow"><span className="eyebrow-line" /> 03 <span className="eyebrow-separator">/</span> Your conclusion</p><h2 id="deduction-title">Make the accusation</h2></div><span className="section-count">{progress.wrongAccusations} {progress.wrongAccusations === 1 ? 'misstep' : 'missteps'}</span></div>
-            <p className="section-intro">Name the person and present two clues: one for how it happened, one for why.</p>
+            <div className="workspace-section-heading"><div><p className="eyebrow"><span className="eyebrow-line" /> 03 <span className="eyebrow-separator">/</span> Your conclusion</p><h2 id="deduction-title">Make the accusation</h2></div>{progress.wrongAccusations > 0 && <span className="section-count">{progress.wrongAccusations} {progress.wrongAccusations === 1 ? 'misstep' : 'missteps'}</span>}</div>
             <div className="deduction-form">
               <label className="field-label" htmlFor="culprit-select">Who is responsible?</label>
               <select id="culprit-select" value={selectedSuspectId} onChange={(event) => setSelectedSuspectId(event.target.value)} disabled={isSolved}>
@@ -174,6 +219,9 @@ export default function CaseWorkspace({ caseFile, progress, difficulty, feedback
                 <label className="select-field"><span className="field-label">The method</span><select value={methodEvidenceId} onChange={(event) => setMethodEvidenceId(event.target.value)} disabled={isSolved || collectedEvidence.length === 0}><option value="">Choose collected evidence</option>{collectedEvidence.map((evidence) => <option key={evidence.id} value={evidence.id}>{evidence.title}</option>)}</select></label>
                 <label className="select-field"><span className="field-label">The motive</span><select value={motiveEvidenceId} onChange={(event) => setMotiveEvidenceId(event.target.value)} disabled={isSolved || collectedEvidence.length === 0}><option value="">Choose collected evidence</option>{collectedEvidence.map((evidence) => <option key={evidence.id} value={evidence.id}>{evidence.title}</option>)}</select></label>
               </div>
+              <div className={`theory-preview ${accusationReady ? 'theory-ready' : ''}`} aria-live="polite">
+                <div className="theory-copy"><small>Your theory</small><strong>{selectedSuspect ? selectedSuspect.name : 'A suspect'} <i>·</i> {methodEvidence ? methodEvidence.title : 'method clue'} <i>·</i> {motiveEvidence ? motiveEvidence.title : 'motive clue'}</strong></div>
+              </div>
               <div className="accusation-footer"><span className="accusation-explainer"><ShieldCheck size={15} /> Only evidence you have examined can be presented.</span><button className="primary-button" type="button" disabled={!accusationReady || isSolved} onClick={() => onAccuse(accusation)}>Present accusation <ArrowUpRight size={16} /></button></div>
               {feedback && <p className={`accusation-feedback ${isSolved ? 'feedback-success' : ''}`} role="status" aria-live="polite">{isSolved ? <CheckCircle2 size={15} /> : <X size={15} />}{feedback}</p>}
             </div>
@@ -182,8 +230,8 @@ export default function CaseWorkspace({ caseFile, progress, difficulty, feedback
 
         <aside className="workspace-aside" aria-label="Detective tools">
           <section className="aside-card hint-card" aria-labelledby="hint-title">
-            <div className="aside-heading"><span className="aside-icon"><Lightbulb size={16} /></span><div><p className="aside-kicker">Need a nudge?</p><h2 id="hint-title">Ask for a hint</h2></div></div>
-            <p className="aside-copy">Hints point you toward the right evidence without naming the culprit.</p>
+            <div className="aside-heading"><span className="aside-icon"><Lightbulb size={16} /></span><div><h2 id="hint-title">Hints</h2></div></div>
+            <p className="aside-copy">Get a pointer to useful evidence.</p>
             {latestHint && <div className="hint-reveal"><span>HINT {progress.hintsUsed} <span>·</span> {difficulty === 'story' ? 'NO SCORE COST' : `−${getHintCost(difficulty)} PTS`}</span><p>{latestHint.text}</p></div>}
             <button className="hint-button" type="button" onClick={onHint} disabled={isSolved || !nextHint}>
               {nextHint ? <><Lightbulb size={15} /> {progress.hintsUsed === 0 ? 'Reveal first hint' : 'Reveal next hint'} <ArrowUpRight size={14} /></> : <><Check size={15} /> All hints revealed</>}
@@ -192,20 +240,14 @@ export default function CaseWorkspace({ caseFile, progress, difficulty, feedback
           </section>
 
           <section className="aside-card notebook-card" aria-labelledby="notebook-title">
-            <div className="aside-heading"><span className="aside-icon"><NotebookPen size={16} /></span><div><p className="aside-kicker">Private field notes</p><h2 id="notebook-title">Detective’s notebook</h2></div></div>
+            <div className="aside-heading"><span className="aside-icon"><NotebookPen size={16} /></span><div><h2 id="notebook-title">Notes</h2></div></div>
             <label className="sr-only" htmlFor="detective-notes">Your notes for {caseFile.title}</label>
-            <textarea id="detective-notes" value={progress.notes} maxLength={5000} onChange={(event) => onNoteChange(event.target.value)} placeholder="Write down a theory, a name, or a detail to revisit…" />
-            <div className="notebook-footer"><span>Saved on this device</span><span>{progress.notes.length}/5000</span></div>
+            <textarea id="detective-notes" value={progress.notes} maxLength={5000} onChange={(event) => onNoteChange(event.target.value)} placeholder="Keep a theory or detail here…" />
           </section>
 
           <section className="aside-card timeline-card" aria-labelledby="timeline-title">
-            <div className="aside-heading"><span className="aside-icon"><Clock3 size={16} /></span><div><p className="aside-kicker">Sequence of events</p><h2 id="timeline-title">Case timeline</h2></div></div>
+            <div className="aside-heading"><span className="aside-icon"><Clock3 size={16} /></span><div><h2 id="timeline-title">Timeline</h2></div></div>
             <ol className="case-timeline">{caseFile.timeline.map((item) => <li key={`${item.time}-${item.label}`}><time>{item.time}</time><div><strong>{item.label}</strong><p>{item.detail}</p></div></li>)}</ol>
-          </section>
-
-          <section className="aside-card activity-card" aria-labelledby="activity-title">
-            <div className="aside-heading"><span className="aside-icon"><BookOpen size={16} /></span><div><p className="aside-kicker">Your investigation</p><h2 id="activity-title">Field log</h2></div></div>
-            {progress.activity.length === 0 ? <p className="empty-activity">Your actions in this case will appear here.</p> : <ol className="activity-list">{[...progress.activity].reverse().slice(0, 8).map((item) => <li key={item.id}><time>{formatActivityTime(item.at)}</time><span>{item.message}</span></li>)}</ol>}
           </section>
         </aside>
       </div>

@@ -105,15 +105,22 @@
     }
   ],
   "timeline": [
-    { "time": "8:55 p.m.", "label": "Rehearsal ends", "detail": "Elian leaves the final score in the library for safekeeping." },
-    { "time": "9:30 p.m.", "label": "The assistant’s workroom is used", "detail": "The rehearsal-copy machine counter advances once." },
-    { "time": "9:48 p.m.", "label": "The library is locked", "detail": "Nina returns the key and seals the door." },
-    { "time": "7:12 a.m.", "label": "The copy is discovered", "detail": "The original score is missing from the shelf." }
+    { "time": "8:55 p.m.", "label": "Rehearsal ends", "detail": "Elian leaves the final score in the library for safekeeping.", "evidenceIds": ["library-seal"] },
+    { "time": "9:30 p.m.", "label": "The assistant’s workroom is used", "detail": "The rehearsal-copy machine counter advances once.", "evidenceIds": ["blue-copying-ribbon", "ink-drying-time"] },
+    { "time": "9:48 p.m.", "label": "The library is locked", "detail": "Nina returns the key and seals the door.", "evidenceIds": ["library-seal"] },
+    { "time": "7:12 a.m.", "label": "The copy is discovered", "detail": "The original score is missing from the shelf.", "evidenceIds": ["blue-copying-ribbon"] }
   ],
   "hints": [
     { "text": "The intact seal narrows the window. Compare when the copy was made with when the library key was returned.", "evidenceIds": ["library-seal", "ink-drying-time"] },
     { "text": "The replacement carries a process mark. Find who had the matching tools and materials.", "evidenceIds": ["blue-copying-ribbon"] },
     { "text": "A sale would be unauthorized until the estate approves it. Look for a private advance, not a signed rights agreement.", "evidenceIds": ["publisher-draft", "estate-note"] }
+  ],
+  "connections": [
+    { "id": "copy-window", "evidenceIds": ["blue-copying-ribbon", "ink-drying-time"], "insight": "The ribbon matches the blue dust, and the ink dates the copy to after rehearsal." },
+    { "id": "before-lockup", "evidenceIds": ["library-seal", "ink-drying-time"], "insight": "The copy was made before Nina sealed the library. An intact seal does not rule out a swap." },
+    { "id": "unauthorized-sale", "evidenceIds": ["publisher-draft", "estate-note"], "insight": "The draft promises an advance, but the estate had not granted print rights. The deal had to stay quiet." },
+    { "id": "celia-method", "evidenceIds": ["blue-copying-ribbon"], "suspectId": "celia-ward", "insight": "Celia prepared the rehearsal copies and handled the matching paper stock. The carbon trace points back to her workroom." },
+    { "id": "celia-motive", "evidenceIds": ["publisher-draft"], "suspectId": "celia-ward", "insight": "The advance was payable on delivery, and the draft carries Celia’s workroom watermark." }
   ],
   "answer": {
     "culpritId": "celia-ward",

@@ -2,7 +2,7 @@
 
 CipherCase is a small detective game that runs in your browser. Work through three original cases, examine evidence, compare suspect accounts, keep notes, and make a final accusation. Your progress stays in local storage on this device.
 
-**Play:** [CipherCase on Firebase Hosting](https://lingeshkanna-ciphercase.web.app/) · **Source:** [GitHub](https://github.com/Lingeshkanna2003/ciphercase)
+**Play:** [CipherCase on GitHub Pages](https://lingeshkanna2003.github.io/ciphercase/) · **Source:** [GitHub](https://github.com/Lingeshkanna2003/ciphercase)
 
 ## Run locally
 
@@ -20,7 +20,7 @@ Vite prints the local URL, usually `http://localhost:5173`.
 - Three complete mysteries with four suspects, five evidence items, a timeline, contextual hints, and a written solution.
 - Examine and revisit clues, log interviews, keep private notes, and use collected evidence to support an accusation.
 - Story, Standard, and Expert modes. Hints and incorrect accusations affect the score; Story mode has no hint penalty.
-- Local progress, case scores, and achievement badges saved in this browser. No account or server is involved.
+- Local progress and case scores saved in this browser. No account or server is involved.
 - Share a completed case with a link containing only its score, case, difficulty, hint count, and completion date. Notes are never included.
 - Responsive layout, keyboard-visible focus, semantic form controls, and reduced-motion support.
 
@@ -56,26 +56,7 @@ npm run build
 
 ### GitHub Pages
 
-To publish this existing local repository, add the GitHub remote and push `main`:
-
-```sh
-git remote add origin https://github.com/Lingeshkanna2003/ciphercase.git
-git push -u origin main
-```
-
-The workflow in `.github/workflows/pages.yml` runs the type check, case tests, and Pages build on each push to `main`. In the repository settings, set **Pages → Build and deployment → Source** to **GitHub Actions** if it is not already selected. The site will be available at `https://lingeshkanna2003.github.io/ciphercase/` after the workflow succeeds.
-
-### Firebase Hosting
-
-Firebase Hosting serves the same static build; the app does not use Firebase services or a backend. Install the Firebase CLI and sign in. This repository's `.firebaserc` maps the `ciphercase` target to a separate Hosting site:
-
-```sh
-npm run build
-firebase login
-firebase deploy --only hosting:ciphercase
-```
-
-The included `firebase.json` publishes `dist/` and falls back to the app entry point for client-side routes. If you use another Firebase project, update the project ID and hosting target mapping in `.firebaserc`; do not commit credentials or private configuration.
+The workflow in `.github/workflows/pages.yml` runs type checks, tests, and the Pages build on every push to `main`, then deploys the site. Confirm the repository uses **Settings → Pages → Build and deployment → GitHub Actions**. The published site is available at [lingeshkanna2003.github.io/ciphercase](https://lingeshkanna2003.github.io/ciphercase/).
 
 ## Screenshots
 
@@ -90,7 +71,7 @@ Screenshots should show real running screens and should not include private note
 
 ## Privacy and cost
 
-The game has no paid APIs, analytics, authentication, or hosted database. Case content is bundled as static JSON; notes and progress remain in the browser's local storage. Clearing site data clears that save. Firebase Hosting and GitHub Pages serve static files, so the app has no metered application backend to operate.
+The game has no paid APIs, analytics, authentication, or hosted database. Case content is bundled as static JSON; notes and progress remain in the browser's local storage. Clearing site data clears that save. GitHub Pages serves static files, so the app has no metered application backend to operate.
 
 ## License
 
