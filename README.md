@@ -59,7 +59,7 @@ npm run build
 To publish this existing local repository, add the GitHub remote and push `main`:
 
 ```sh
-git remote add origin https://github.com/Lingeshkhanna2003/ciphercase.git
+git remote add origin https://github.com/Lingeshkanna2003/ciphercase.git
 git push -u origin main
 ```
 
