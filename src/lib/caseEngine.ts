@@ -1,8 +1,13 @@
-import type { Accusation, CaseFile, Difficulty } from '../types/game';
+import type { CaseFile, Difficulty } from '../types/game';
 
 export type AccusationCheck =
   | { kind: 'correct' }
   | { kind: 'incomplete' }
+  | { kind: 'invalid-accusation' }
+  | { kind: 'invalid-suspect' }
+  | { kind: 'invalid-evidence' }
+  | { kind: 'same-evidence' }
+  | { kind: 'already-solved' }
   | { kind: 'uncollected-evidence' }
   | { kind: 'incorrect' };
 
@@ -44,11 +49,20 @@ export function validateCaseFile(caseFile: CaseFile): string[] {
     }
   }
 
+  for (const entry of caseFile.timeline) {
+    if (entry.evidenceIds?.some((id) => !allEvidenceIds.has(id))) {
+      errors.push('Every timeline reference must point to evidence in the case.');
+      break;
+    }
+  }
+
   const uniqueConnectionIds = new Set<string>();
   for (const connection of caseFile.connections ?? []) {
     if (!connection.id || uniqueConnectionIds.has(connection.id)) errors.push('Case connection ids must be present and unique.');
     uniqueConnectionIds.add(connection.id);
+    if (!connection.insight.trim()) errors.push('Every case connection must include an insight.');
     if (connection.evidenceIds.some((id) => !allEvidenceIds.has(id))) errors.push('Every case connection must reference evidence in the case.');
+    if (new Set(connection.evidenceIds).size !== connection.evidenceIds.length) errors.push('A connection cannot repeat an evidence item.');
     if (connection.suspectId && !uniqueSuspects.has(connection.suspectId)) errors.push('Every person connection must reference a suspect in the case.');
     if (connection.evidenceIds.length === 2 && connection.suspectId) errors.push('A connection must compare two clues or one clue and one suspect.');
     if (connection.evidenceIds.length !== 2 && !(connection.evidenceIds.length === 1 && connection.suspectId)) errors.push('A connection must compare two clues or one clue and one suspect.');
@@ -59,23 +73,62 @@ export function validateCaseFile(caseFile: CaseFile): string[] {
 
 export function checkAccusation(
   caseFile: CaseFile,
-  accusation: Accusation,
+  accusation: unknown,
   discoveredEvidenceIds: readonly string[],
+  alreadySolved = false,
 ): AccusationCheck {
-  if (!accusation.suspectId || !accusation.methodEvidenceId || !accusation.motiveEvidenceId) {
+  if (alreadySolved) return { kind: 'already-solved' };
+  if (typeof accusation !== 'object' || accusation === null || Array.isArray(accusation)) {
+    return { kind: 'invalid-accusation' };
+  }
+  const record = accusation as Record<string, unknown>;
+  const { suspectId, methodEvidenceId, motiveEvidenceId } = record;
+  if (suspectId === undefined || methodEvidenceId === undefined || motiveEvidenceId === undefined) {
     return { kind: 'incomplete' };
   }
+  if (typeof suspectId !== 'string' || typeof methodEvidenceId !== 'string' || typeof motiveEvidenceId !== 'string') return { kind: 'invalid-accusation' };
+  if (!suspectId || !methodEvidenceId || !motiveEvidenceId) return { kind: 'incomplete' };
+
+  if (!caseFile.suspects.some((suspect) => suspect.id === suspectId)) return { kind: 'invalid-suspect' };
+  const evidenceIds = new Set(caseFile.evidence.map((evidence) => evidence.id));
+  if (!evidenceIds.has(methodEvidenceId) || !evidenceIds.has(motiveEvidenceId)) return { kind: 'invalid-evidence' };
+  if (methodEvidenceId === motiveEvidenceId) return { kind: 'same-evidence' };
 
   const discovered = new Set(discoveredEvidenceIds);
-  if (!discovered.has(accusation.methodEvidenceId) || !discovered.has(accusation.motiveEvidenceId)) {
+  if (!discovered.has(methodEvidenceId) || !discovered.has(motiveEvidenceId)) {
     return { kind: 'uncollected-evidence' };
   }
 
-  const isCorrect = accusation.suspectId === caseFile.answer.culpritId
-    && accusation.methodEvidenceId === caseFile.answer.methodEvidenceId
-    && accusation.motiveEvidenceId === caseFile.answer.motiveEvidenceId;
+  const isCorrect = suspectId === caseFile.answer.culpritId
+    && methodEvidenceId === caseFile.answer.methodEvidenceId
+    && motiveEvidenceId === caseFile.answer.motiveEvidenceId;
 
   return isCorrect ? { kind: 'correct' } : { kind: 'incorrect' };
+}
+
+export function findCaseConnection(
+  connections: CaseFile['connections'],
+  evidenceIds: readonly string[],
+  suspectId: string | undefined,
+  availableEvidenceIds: readonly string[],
+  availableSuspectIds: readonly string[],
+): CaseFile['connections'][number] | undefined {
+  const evidenceSet = new Set(availableEvidenceIds);
+  const suspectSet = new Set(availableSuspectIds);
+  if (evidenceIds.some((id) => !evidenceSet.has(id))) return undefined;
+  if (new Set(evidenceIds).size !== evidenceIds.length) return undefined;
+
+  if (suspectId !== undefined) {
+    if (evidenceIds.length !== 1 || !suspectSet.has(suspectId)) return undefined;
+    return connections.find((connection) => connection.suspectId === suspectId
+      && connection.evidenceIds.length === 1
+      && connection.evidenceIds[0] === evidenceIds[0]);
+  }
+
+  if (evidenceIds.length !== 2) return undefined;
+  return connections.find((connection) => connection.suspectId === undefined
+    && connection.evidenceIds.length === 2
+    && connection.evidenceIds.every((id) => evidenceIds.includes(id)));
 }
 
 export function calculateScore(

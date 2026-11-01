@@ -1,6 +1,7 @@
 import { ArrowDown, ArrowUp, Check, CircleHelp, Link2, Pin, RotateCcw } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import type { CaseConnection, Evidence, Suspect } from '../types/game';
+import { findCaseConnection } from '../lib/caseEngine';
 
 interface DeductionBoardProps {
   evidence: Evidence[];
@@ -28,12 +29,16 @@ export default function DeductionBoard({ evidence, suspects, connections, discov
 
   const compare = () => {
     if (selectedIds.length !== 2) return;
-    const suspectToken = selectedIds.find((id) => id.startsWith('suspect:'));
+    const suspectTokens = selectedIds.filter((id) => id.startsWith('suspect:'));
     const evidenceIds = selectedIds.filter((id) => !id.startsWith('suspect:'));
-    const suspectId = suspectToken?.slice('suspect:'.length);
-    const connection = connections.find((item) => suspectId
-      ? item.suspectId === suspectId && item.evidenceIds.length === 1 && item.evidenceIds[0] === evidenceIds[0]
-      : item.evidenceIds.length === 2 && item.evidenceIds.every((id) => evidenceIds.includes(id)));
+    const suspectId = suspectTokens.length === 1 ? suspectTokens[0].slice('suspect:'.length) : undefined;
+    const connection = findCaseConnection(
+      connections,
+      evidenceIds,
+      suspectId,
+      evidence.map((item) => item.id),
+      suspects.map((item) => item.id),
+    );
     if (connection) {
       if (!discovered.has(connection.id)) onConnect(connection.id);
       setMessage(connection.insight);

@@ -5,7 +5,7 @@
   "subtitle": "A theft behind a locked door",
   "location": "Marlowe Conservatory, Whitby",
   "incident": "The Atlas pocket watch vanished from a locked archive during a brief power cut.",
-  "brief": "At 9:17 p.m., the lights in the conservatory went out for just over a minute. When they came back, the archive cabinet was still locked, its key still sealed in the curator’s office, and the Atlas watch was gone. Five people were in the building. The service passages on the old floor plan were supposedly closed years ago.",
+  "brief": "At 9:17 p.m., the lights in the conservatory went out for just over a minute. When they came back, the archive cabinet was still locked, its key still sealed in the curator’s office, and the Atlas watch was gone. Four people were in the building. The service passages on the old floor plan were supposedly closed years ago.",
   "victim": "The Marlowe collection",
   "crime": "Theft",
   "complexity": "Warm-up",
@@ -36,7 +36,7 @@
       "name": "Emil Hart",
       "role": "Assistant curator",
       "initials": "EH",
-      "profile": "Recently hired to prepare the archive for an insurance audit. Emil knew the watch’s value and had requested access to its old inventory file.",
+      "profile": "Recently hired to prepare the archive for an insurance audit. Emil knew the watch’s value, had requested its old inventory file, and was owed a delayed contract payment.",
       "motive": "A private dealer was willing to pay for an unregistered antique.",
       "alibi": "He says he was in the map room. The room is empty and has no time-stamped access log.",
       "detail": "Emil corrected the archive floor plan in pencil the day before the theft."

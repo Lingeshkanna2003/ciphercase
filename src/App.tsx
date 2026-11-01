@@ -8,7 +8,6 @@ import { calculateScore, checkAccusation } from './lib/caseEngine';
 import { createCaseProgress, createFreshProgress, loadProgress, SAVE_KEY, saveProgress } from './lib/progress';
 import { createShareUrl, readSharedResult } from './lib/sharing';
 import type { Accusation, CaseActivity, CaseActivityType, CaseProgress, Difficulty, GameProgress, SharedResult } from './types/game';
-import { playSound } from './lib/sound';
 
 function getBrowserStorage(): Storage | undefined {
   try {
@@ -67,7 +66,6 @@ export default function App() {
     setAccusationFeedback('');
     setShareNotice('');
     clearShareUrl();
-    playSound(progress.soundEnabled, 'open');
     setProgress((current) => {
       if (current.cases[caseId]) return current;
       const fresh = createCaseProgress();
@@ -87,8 +85,6 @@ export default function App() {
     if (!activeCase) return;
     const evidence = activeCase.evidence.find((item) => item.id === evidenceId);
     if (!evidence) return;
-    const existing = progress.cases[activeCase.id]?.discoveredEvidenceIds.includes(evidenceId);
-    if (!existing) playSound(progress.soundEnabled, 'discover');
     updateCase(activeCase.id, (caseProgress) => {
       if (caseProgress.discoveredEvidenceIds.includes(evidenceId)) return caseProgress;
       const updated = { ...caseProgress, discoveredEvidenceIds: [...caseProgress.discoveredEvidenceIds, evidenceId] };
@@ -111,7 +107,6 @@ export default function App() {
     if (!activeCase) return;
     const connection = activeCase.connections.find((item) => item.id === connectionId);
     if (!connection) return;
-    if (!activeProgress?.discoveredConnectionIds.includes(connectionId)) playSound(progress.soundEnabled, 'compare');
     updateCase(activeCase.id, (caseProgress) => {
       if (caseProgress.discoveredConnectionIds.includes(connectionId)) return caseProgress;
       return addActivity({ ...caseProgress, discoveredConnectionIds: [...caseProgress.discoveredConnectionIds, connectionId] }, 'connection', `Connected ${connection.evidenceIds.map((id) => activeCase.evidence.find((item) => item.id === id)?.title ?? 'evidence').join(' and ')}.`);
@@ -126,8 +121,11 @@ export default function App() {
   const addHint = () => {
     if (!activeCase || !activeProgress) return;
     if (activeProgress.hintsUsed >= activeCase.hints.length) return;
-    const hintNumber = activeProgress.hintsUsed + 1;
-    updateCase(activeCase.id, (caseProgress) => addActivity({ ...caseProgress, hintsUsed: Math.min(caseProgress.hintsUsed + 1, activeCase.hints.length) }, 'hint', `Revealed hint ${hintNumber}.`));
+    updateCase(activeCase.id, (caseProgress) => {
+      if (caseProgress.result || caseProgress.hintsUsed >= activeCase.hints.length) return caseProgress;
+      const hintsUsed = caseProgress.hintsUsed + 1;
+      return addActivity({ ...caseProgress, hintsUsed }, 'hint', `Revealed hint ${hintsUsed}.`);
+    });
   };
 
   const makeAccusation = (accusation: Accusation) => {
@@ -141,10 +139,13 @@ export default function App() {
       setAccusationFeedback('Investigate both pieces of evidence before presenting them.');
       return;
     }
+    if (outcome.kind === 'invalid-accusation' || outcome.kind === 'invalid-suspect' || outcome.kind === 'invalid-evidence' || outcome.kind === 'same-evidence' || outcome.kind === 'already-solved') {
+      setAccusationFeedback('That accusation is incomplete or no longer available. Review your selections and try again.');
+      return;
+    }
     if (outcome.kind === 'incorrect') {
       updateCase(activeCase.id, (caseProgress) => addActivity({ ...caseProgress, wrongAccusations: caseProgress.wrongAccusations + 1 }, 'accusation', 'An accusation did not fit the evidence.'));
       setAccusationFeedback('That theory does not fit the evidence yet. Review your notes and try again.');
-      playSound(progress.soundEnabled, 'error');
       return;
     }
 
@@ -167,7 +168,6 @@ export default function App() {
       };
     });
     setAccusationFeedback('The evidence supports your conclusion.');
-    playSound(progress.soundEnabled, 'solve');
   };
 
   const revealShare = async (result?: SharedResult) => {
@@ -214,7 +214,7 @@ export default function App() {
   return (
     <div className={`app-frame ${activeCase ? `case-theme-${activeCase.id}` : 'bureau-theme'}`}>
       <div className="ambient-light ambient-one" aria-hidden="true" /><div className="ambient-light ambient-two" aria-hidden="true" />
-      <GameHeader activeCaseTitle={activeCase?.title} solvedCount={solvedCount} saveAvailable={saveAvailable} soundEnabled={progress.soundEnabled} onToggleSound={() => setProgress((current) => ({ ...current, soundEnabled: !current.soundEnabled }))} onHome={home} onReset={!activeCase ? resetProgress : undefined} />
+      <GameHeader activeCaseTitle={activeCase?.title} solvedCount={solvedCount} saveAvailable={saveAvailable} onHome={home} onReset={!activeCase ? resetProgress : undefined} />
       <div className="app-content">
         {activeCase && activeProgress ? (
           <CaseWorkspace

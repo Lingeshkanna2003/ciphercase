@@ -1,17 +1,15 @@
-import { ArrowLeft, CheckCircle2, FolderOpen, RotateCcw, Save, Volume2, VolumeX } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, FolderOpen, RotateCcw, Save } from 'lucide-react';
 import brandMark from '../assets/brand/ciphercase-mark.png';
 
 interface GameHeaderProps {
   activeCaseTitle?: string;
   solvedCount: number;
   saveAvailable: boolean;
-  soundEnabled: boolean;
   onHome: () => void;
   onReset?: () => void;
-  onToggleSound: () => void;
 }
 
-export default function GameHeader({ activeCaseTitle, solvedCount, saveAvailable, soundEnabled, onHome, onReset, onToggleSound }: GameHeaderProps) {
+export default function GameHeader({ activeCaseTitle, solvedCount, saveAvailable, onHome, onReset }: GameHeaderProps) {
   return (
     <header className="topbar">
       <div className="topbar-inner">
@@ -32,7 +30,6 @@ export default function GameHeader({ activeCaseTitle, solvedCount, saveAvailable
             {saveAvailable ? <Save size={14} /> : <RotateCcw size={14} />}
             <span>{saveAvailable ? 'Saved' : 'Save unavailable'}</span>
           </span>
-          <button type="button" className="sound-toggle" onClick={onToggleSound} aria-pressed={soundEnabled} aria-label={soundEnabled ? 'Mute sound effects' : 'Enable sound effects'} title={soundEnabled ? 'Sound effects on' : 'Sound effects off'}>{soundEnabled ? <Volume2 size={15} /> : <VolumeX size={15} />}</button>
           {onReset && <button type="button" className="reset-save-button" onClick={onReset}>Reset progress</button>}
         </nav>
       </div>

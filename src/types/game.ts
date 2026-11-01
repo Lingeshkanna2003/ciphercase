@@ -107,7 +107,6 @@ export interface CaseProgress {
 export interface GameProgress {
   version: 2;
   difficulty: Difficulty;
-  soundEnabled: boolean;
   cases: Record<string, CaseProgress>;
   results: Record<string, CaseResult>;
 }

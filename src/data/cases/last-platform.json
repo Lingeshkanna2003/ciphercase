@@ -99,7 +99,7 @@
       "kind": "Trace",
       "location": "Dispatch corridor",
       "teaser": "A ticket fragment is caught under the cabinet door.",
-      "observation": "It is a conductor’s staff ticket punched at 11:37, the minute the telegram was last confirmed inside the cabinet. The punch pattern matches the staff book in Owen’s compartment.",
+      "observation": "It is a conductor’s staff ticket punched at 11:37, the minute the telegram was last confirmed inside the cabinet. The station’s staff book confirms this punch was issued only to Owen; the matching booklet is kept in his compartment.",
       "meaning": "Someone carrying a conductor’s staff ticket was at the dispatch cabinet after the last confirmation.",
       "icon": "ticket"
     }
